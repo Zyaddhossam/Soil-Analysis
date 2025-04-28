@@ -55,6 +55,3 @@ async def predict(file: UploadFile = File(...)):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# To run the application, use:
-# uvicorn <filename>:app --reload
