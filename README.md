@@ -68,5 +68,5 @@ This system can be especially useful for farmers, agronomists, and agricultural 
 ### Installation
 ```bash
 git clone https://github.com/Zyaddhossam/Soil_Model.git
-cd Soil_Model
+cd Soil-Analysis/Deployment/
 pip install -r requirements.txt
