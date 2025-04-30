@@ -45,15 +45,14 @@ This system can be especially useful for farmers, agronomists, and agricultural 
 ├── Deployment
 │   └── API.py #code for API 
 │   └── Model.h5 #The Soil Type trained model
-│   └── random_forest_model.joblib #Soil Suitability trained Model 
+│   └── random_forest_model.joblib #Soil Suitability trained Model
+│   └── Requirments.txt #Requirements for the model
 ├── Soil-Suitability-Model
 │   └── model.py #the code for the model itself (random_forest_model.joblib)
-│   └── dataset.csv #dataset for the model
-│   └── Requirments.txt #Requirements for the model
+│   └── dataset.csv #dataset for the model   
 │   └── Class_names #for class names in the model
 ├── Soil-Types 
 │   └── Soil.ipynb #code for Model itself (Model.h5)
-│   └── requirements.txt # Requirements for the model
 │   └── Class_names #for class names in the model
 │   └── Cloud
 │          └── Resource_Group #image for resource group on microsoft azure
