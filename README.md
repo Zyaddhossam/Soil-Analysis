@@ -42,6 +42,7 @@ This system can be especially useful for farmers, agronomists, and agricultural 
 
 ### Project structure
 ```
+Soil-Analysis
 ├── Deployment
 │   └── API.py #code for API 
 │   └── Model.h5 #The Soil Type trained model
