@@ -41,23 +41,24 @@ This system can be especially useful for farmers, agronomists, and agricultural 
 - **Microsoft Azure** – For cloud services and deployment  
 
 ### Project structure
-├──Deployment
+```
+Soil-Analysis
+├── Deployment
 │   └── API.py #code for API 
 │   └── Model.h5 #The Soil Type trained model
-│   └── random_forest_model.joblib #Soil Suitability trained Model 
-├──Soil-Suitability-Model
-│   └── model.py #the code for the model itself (random_forest_model.joblib)
-│   └── dataset.csv #dataset for the model
+│   └── random_forest_model.joblib #Soil Suitability trained Model
 │   └── Requirments.txt #Requirements for the model
+├── Soil-Suitability-Model
+│   └── model.py #the code for the model itself (random_forest_model.joblib)
+│   └── dataset.csv #dataset for the model   
 │   └── Class_names #for class names in the model
-├──Soil-Types 
+├── Soil-Types 
 │   └── Soil.ipynb #code for Model itself (Model.h5)
-│   └── requirements.txt # Requirements for the model
 │   └── Class_names #for class names in the model
 │   └── Cloud
 │          └── Resource_Group #image for resource group on microsoft azure
 │          └── Virtual Machine Inbound #image for VM inbound traffic on microsoft azure
-
+```
 
 ## Quick Start
 
@@ -68,5 +69,6 @@ This system can be especially useful for farmers, agronomists, and agricultural 
 ### Installation
 ```bash
 git clone https://github.com/Zyaddhossam/Soil_Model.git
-cd Soil_Model
+cd Soil-Analysis/Deployment/
 pip install -r requirements.txt
+```
