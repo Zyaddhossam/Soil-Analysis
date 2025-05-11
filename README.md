@@ -52,12 +52,12 @@ Soil-Analysis
 │   └── model.py #the code for the model itself (random_forest_model.joblib)
 │   └── dataset.csv #dataset for the model   
 │   └── Class_names #for class names in the model
-├── Soil-Types 
-│   └── Soil.ipynb #code for Model itself (Model.h5)
-│   └── Class_names #for class names in the model
-│   └── Cloud
-│          └── Resource_Group #image for resource group on microsoft azure
-│          └── Virtual Machine Inbound #image for VM inbound traffic on microsoft azure
+└── Soil-Types 
+    └── Soil.ipynb #code for Model itself (Model.h5)
+    └── Class_names #for class names in the model
+    └── Cloud
+           └── Resource_Group #image for resource group on microsoft azure
+           └── Virtual Machine Inbound #image for VM inbound traffic on microsoft azure
 ```
 
 ## Quick Start
