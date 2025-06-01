@@ -13,6 +13,13 @@ This system can be especially useful for farmers, agronomists, and agricultural 
 - Evaluates whether the identified soil is suitable for planting
 - Suggests the most suitable types of plants for the given soil (future Work)
 
+## Hosting Process
+- We used **Microsoft Azure** to host the AI models used in the project.
+- Launched a **Virtual Machine (VM)** that meets the requirements of our AI model.
+- Installed the necessary dependencies and reserved the VM for one week to run the API, utilizing **ports 8000 and 5000**.
+- Configured the **inbound port rules** in the Azure Portal to allow traffic through the specified ports.
+
+
 ### Model Details
 
 #### 1. Soil Classification Model
