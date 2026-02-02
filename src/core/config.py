@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     environment: Literal["development", "staging", "production"] = "development"
 
     # API Configuration
-    api_prefix: str = "/api"
+    api_prefix: str = "/api/v1"
     allowed_origins: list[str] = Field(
         default=["*"],
         description="CORS allowed origins",

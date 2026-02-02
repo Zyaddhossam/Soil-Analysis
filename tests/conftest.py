@@ -90,24 +90,37 @@ def test_client(
 ) -> Generator[TestClient, None, None]:
     """Create FastAPI test client with mocked models."""
     from src.api import dependencies
-    from src.api.main import app
+    from src.api.main import create_app
 
-    # Patch the dependency functions
-    with (
-        patch.object(dependencies, "get_soil_classifier", return_value=mock_soil_classifier),
-        patch.object(
-            dependencies, "get_fertility_predictor", return_value=mock_fertility_predictor
-        ),
+    # Reset global state
+    dependencies._soil_classifier = None
+    dependencies._fertility_predictor = None
+
+    # Create a fresh app with dependency overrides
+    app = create_app()
+
+    # Override FastAPI dependencies
+    app.dependency_overrides[dependencies.get_soil_classifier] = lambda: mock_soil_classifier
+    app.dependency_overrides[dependencies.get_fertility_predictor] = lambda: mock_fertility_predictor
+
+    # Patch check_models_loaded to return mocked status
+    with patch.object(
+        dependencies,
+        "check_models_loaded",
+        return_value={"soil_classifier": True, "fertility_predictor": True},
     ):
         with TestClient(app) as client:
             yield client
+
+    # Clean up overrides
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def test_client_no_models() -> Generator[TestClient, None, None]:
     """Create FastAPI test client without loaded models."""
     from src.api import dependencies
-    from src.api.main import app
+    from src.api.main import create_app
 
     mock_classifier = MagicMock()
     mock_classifier.is_loaded = False
@@ -115,9 +128,24 @@ def test_client_no_models() -> Generator[TestClient, None, None]:
     mock_predictor = MagicMock()
     mock_predictor.is_loaded = False
 
-    with (
-        patch.object(dependencies, "get_soil_classifier", return_value=mock_classifier),
-        patch.object(dependencies, "get_fertility_predictor", return_value=mock_predictor),
+    # Reset global state
+    dependencies._soil_classifier = None
+    dependencies._fertility_predictor = None
+
+    # Create a fresh app with dependency overrides
+    app = create_app()
+
+    app.dependency_overrides[dependencies.get_soil_classifier] = lambda: mock_classifier
+    app.dependency_overrides[dependencies.get_fertility_predictor] = lambda: mock_predictor
+
+    # Patch check_models_loaded to return unloaded status
+    with patch.object(
+        dependencies,
+        "check_models_loaded",
+        return_value={"soil_classifier": False, "fertility_predictor": False},
     ):
         with TestClient(app) as client:
             yield client
+
+    # Clean up overrides
+    app.dependency_overrides.clear()

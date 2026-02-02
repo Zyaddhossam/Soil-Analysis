@@ -1,5 +1,8 @@
 """Pydantic schemas for API request/response validation."""
 
+from typing import Annotated
+
+from fastapi import Form
 from pydantic import BaseModel, Field
 
 
@@ -59,6 +62,27 @@ class SoilFeaturesRequest(BaseModel):
             "Mn": self.Mn,
             "B": self.B,
         }
+
+
+def soil_features_from_form(
+    N: Annotated[float, Form(ge=0, description="Nitrogen content (kg/ha)")],
+    P: Annotated[float, Form(ge=0, description="Phosphorus content (kg/ha)")],
+    K: Annotated[float, Form(ge=0, description="Potassium content (kg/ha)")],
+    pH: Annotated[float, Form(ge=0, le=14, description="Soil pH value")],
+    EC: Annotated[float, Form(ge=0, description="Electrical Conductivity (dS/m)")],
+    OC: Annotated[float, Form(ge=0, description="Organic Carbon (%)")],
+    S: Annotated[float, Form(ge=0, description="Sulfur content (mg/kg)")],
+    Zn: Annotated[float, Form(ge=0, description="Zinc content (mg/kg)")],
+    Fe: Annotated[float, Form(ge=0, description="Iron content (mg/kg)")],
+    Cu: Annotated[float, Form(ge=0, description="Copper content (mg/kg)")],
+    Mn: Annotated[float, Form(ge=0, description="Manganese content (mg/kg)")],
+    B: Annotated[float, Form(ge=0, description="Boron content (mg/kg)")],
+) -> SoilFeaturesRequest:
+    """Create SoilFeaturesRequest from form data."""
+    return SoilFeaturesRequest(
+        N=N, P=P, K=K, pH=pH, EC=EC, OC=OC,
+        S=S, Zn=Zn, Fe=Fe, Cu=Cu, Mn=Mn, B=B,
+    )
 
 
 class SoilTypeResponse(BaseModel):

@@ -10,6 +10,7 @@ from src.api.schemas.requests import (
     FertilityResponse,
     SoilFeaturesRequest,
     SoilTypeResponse,
+    soil_features_from_form,
 )
 from src.core.logging import get_logger
 from src.models.fertility_predictor import FertilityPredictor
@@ -159,7 +160,7 @@ async def predict_fertility(
 )
 async def analyze_soil(
     file: Annotated[UploadFile, File(description="Soil image (JPEG, PNG)")],
-    features: SoilFeaturesRequest = Depends(),
+    features: SoilFeaturesRequest = Depends(soil_features_from_form),
     include_probabilities: Annotated[
         bool,
         Query(description="Include probabilities for all classes"),

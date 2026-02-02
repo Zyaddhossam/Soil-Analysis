@@ -45,22 +45,22 @@ class TestSoilClassifier:
         with pytest.raises(RuntimeError, match="Model loading failed"):
             classifier.load()
 
-    @patch("src.models.soil_classifier.keras")
-    def test_load_success(self, mock_keras, tmp_path):
+    @patch("tensorflow.keras.models.load_model")
+    def test_load_success(self, mock_load_model, tmp_path):
         """Test successful model loading."""
         model_path = tmp_path / "model.h5"
         model_path.touch()
 
-        mock_keras.models.load_model.return_value = MagicMock()
+        mock_load_model.return_value = MagicMock()
 
         classifier = SoilClassifier(model_path=model_path)
         classifier.load()
 
         assert classifier.is_loaded
-        mock_keras.models.load_model.assert_called_once()
+        mock_load_model.assert_called_once()
 
-    @patch("src.models.soil_classifier.keras")
-    def test_predict(self, mock_keras, tmp_path, sample_image_bytes):
+    @patch("tensorflow.keras.models.load_model")
+    def test_predict(self, mock_load_model, tmp_path, sample_image_bytes):
         """Test prediction."""
         model_path = tmp_path / "model.h5"
         model_path.touch()
@@ -68,7 +68,7 @@ class TestSoilClassifier:
         # Mock model prediction
         mock_model = MagicMock()
         mock_model.predict.return_value = np.array([[0.7, 0.1, 0.1, 0.1]])
-        mock_keras.models.load_model.return_value = mock_model
+        mock_load_model.return_value = mock_model
 
         classifier = SoilClassifier(model_path=model_path)
         classifier.load()
@@ -81,15 +81,15 @@ class TestSoilClassifier:
         assert result["class_id"] == 0
         assert result["confidence"] == 0.7
 
-    @patch("src.models.soil_classifier.keras")
-    def test_predict_with_probabilities(self, mock_keras, tmp_path, sample_image_bytes):
+    @patch("tensorflow.keras.models.load_model")
+    def test_predict_with_probabilities(self, mock_load_model, tmp_path, sample_image_bytes):
         """Test prediction with probabilities."""
         model_path = tmp_path / "model.h5"
         model_path.touch()
 
         mock_model = MagicMock()
         mock_model.predict.return_value = np.array([[0.7, 0.15, 0.1, 0.05]])
-        mock_keras.models.load_model.return_value = mock_model
+        mock_load_model.return_value = mock_model
 
         classifier = SoilClassifier(model_path=model_path)
         classifier.load()
@@ -124,22 +124,22 @@ class TestFertilityPredictor:
         with pytest.raises(RuntimeError, match="Model loading failed"):
             predictor.load()
 
-    @patch("src.models.fertility_predictor.joblib")
-    def test_load_success(self, mock_joblib, tmp_path):
+    @patch("joblib.load")
+    def test_load_success(self, mock_joblib_load, tmp_path):
         """Test successful model loading."""
         model_path = tmp_path / "model.joblib"
         model_path.touch()
 
-        mock_joblib.load.return_value = MagicMock()
+        mock_joblib_load.return_value = MagicMock()
 
         predictor = FertilityPredictor(model_path=model_path)
         predictor.load()
 
         assert predictor.is_loaded
-        mock_joblib.load.assert_called_once()
+        mock_joblib_load.assert_called_once()
 
-    @patch("src.models.fertility_predictor.joblib")
-    def test_predict(self, mock_joblib, tmp_path, sample_features):
+    @patch("joblib.load")
+    def test_predict(self, mock_joblib_load, tmp_path, sample_features):
         """Test prediction."""
         model_path = tmp_path / "model.joblib"
         model_path.touch()
@@ -148,7 +148,7 @@ class TestFertilityPredictor:
         mock_model = MagicMock()
         mock_model.predict.return_value = np.array([1])
         mock_model.predict_proba.return_value = np.array([[0.1, 0.7, 0.2]])
-        mock_joblib.load.return_value = mock_model
+        mock_joblib_load.return_value = mock_model
 
         predictor = FertilityPredictor(model_path=model_path)
         predictor.load()
@@ -159,8 +159,8 @@ class TestFertilityPredictor:
         assert result["class_name"] == "Fertile"
         assert result["confidence"] == 0.7
 
-    @patch("src.models.fertility_predictor.joblib")
-    def test_predict_with_probabilities(self, mock_joblib, tmp_path, sample_features):
+    @patch("joblib.load")
+    def test_predict_with_probabilities(self, mock_joblib_load, tmp_path, sample_features):
         """Test prediction with probabilities."""
         model_path = tmp_path / "model.joblib"
         model_path.touch()
@@ -168,7 +168,7 @@ class TestFertilityPredictor:
         mock_model = MagicMock()
         mock_model.predict.return_value = np.array([2])
         mock_model.predict_proba.return_value = np.array([[0.1, 0.2, 0.7]])
-        mock_joblib.load.return_value = mock_model
+        mock_joblib_load.return_value = mock_model
 
         predictor = FertilityPredictor(model_path=model_path)
         predictor.load()
@@ -178,8 +178,8 @@ class TestFertilityPredictor:
         assert "probabilities" in result
         assert len(result["probabilities"]) == 3
 
-    @patch("src.models.fertility_predictor.joblib")
-    def test_predict_with_warnings(self, mock_joblib, tmp_path, sample_features):
+    @patch("joblib.load")
+    def test_predict_with_warnings(self, mock_joblib_load, tmp_path, sample_features):
         """Test prediction includes warnings for out-of-range values."""
         model_path = tmp_path / "model.joblib"
         model_path.touch()
@@ -187,7 +187,7 @@ class TestFertilityPredictor:
         mock_model = MagicMock()
         mock_model.predict.return_value = np.array([1])
         mock_model.predict_proba.return_value = np.array([[0.1, 0.7, 0.2]])
-        mock_joblib.load.return_value = mock_model
+        mock_joblib_load.return_value = mock_model
 
         predictor = FertilityPredictor(model_path=model_path)
         predictor.load()
