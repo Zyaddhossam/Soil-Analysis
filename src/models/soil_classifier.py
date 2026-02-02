@@ -43,9 +43,20 @@ class SoilClassifier:
             mlflow_model_version: Version of model to load.
         """
         self._model = None
-        self._model_path: Path | None = (
-            Path(model_path) if model_path else settings.soil_classifier_model_path
-        )
+        if model_path is not None:
+            self._model_path: Path = (
+                Path(model_path) if not isinstance(model_path, Path) else model_path
+            )
+        else:
+            path_from_settings = settings.soil_classifier_model_path
+            if path_from_settings is None:
+                raise RuntimeError("Soil classifier model path not configured in settings")
+            self._model_path = path_from_settings
+        
+        logger.debug(f"Initialized SoilClassifier with model_path: {self._model_path}")
+        logger.debug(f"Model path type: {type(self._model_path)}")
+        logger.debug(f"Model path absolute: {self._model_path.absolute()}")
+        
         self._use_mlflow = use_mlflow
         self._mlflow_model_name = mlflow_model_name or "soil-classifier"
         self._mlflow_model_version = mlflow_model_version
@@ -79,9 +90,6 @@ class SoilClassifier:
         """Load model from local file."""
         # Import TensorFlow only when needed
         from tensorflow import keras  # type: ignore[import-untyped]
-
-        if self._model_path is None:
-            raise RuntimeError("Model path not configured")
 
         if not self._model_path.exists():
             raise FileNotFoundError(f"Model not found: {self._model_path}")

@@ -67,14 +67,10 @@ logs/
 tensorboard_logs/
 
 # Model artifacts (tracked separately)
-artifacts/*.joblib
-artifacts/*.h5
-artifacts/**/*.joblib
-artifacts/**/*.h5
+artifacts/
 
 # Data files (too large for git)
-*.csv
-!data/sample/*.csv
+data/
 
 # Logs
 *.log

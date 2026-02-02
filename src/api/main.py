@@ -90,7 +90,11 @@ def create_app() -> FastAPI:
 app = create_app()
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Main entry point for the API server.
+
+    This function is used by the CLI command defined in pyproject.toml.
+    """
     import uvicorn
 
     uvicorn.run(
@@ -100,3 +104,7 @@ if __name__ == "__main__":
         reload=settings.debug,
         log_level="debug" if settings.debug else "info",
     )
+
+
+if __name__ == "__main__":
+    main()

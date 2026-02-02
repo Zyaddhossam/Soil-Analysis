@@ -1,6 +1,5 @@
 """Dependency injection for FastAPI routes."""
 
-from src.core.config import settings
 from src.core.logging import get_logger
 from src.models.fertility_predictor import FertilityPredictor
 from src.models.soil_classifier import SoilClassifier
@@ -23,7 +22,6 @@ def get_soil_classifier() -> SoilClassifier:
     if _soil_classifier is None:
         logger.info("Initializing SoilClassifier...")
         _soil_classifier = SoilClassifier(
-            model_path=settings.soil_classifier_model_path,
             use_mlflow=False,  # Set to True to use MLflow registry
         )
 
@@ -50,7 +48,6 @@ def get_fertility_predictor() -> FertilityPredictor:
     if _fertility_predictor is None:
         logger.info("Initializing FertilityPredictor...")
         _fertility_predictor = FertilityPredictor(
-            model_path=settings.fertility_predictor_model_path,
             use_mlflow=False,  # Set to True to use MLflow registry
         )
 

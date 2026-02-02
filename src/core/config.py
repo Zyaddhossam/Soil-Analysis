@@ -8,8 +8,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict  # type: ignore[import-untyped]
+
+# Compute project root at module level
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 class Settings(BaseSettings):
@@ -29,14 +32,14 @@ class Settings(BaseSettings):
     environment: Literal["development", "staging", "production"] = "development"
 
     # API Configuration
-    api_prefix: str = "/api/v1"
+    api_prefix: str = "/api"
     allowed_origins: list[str] = Field(
         default=["*"],
         description="CORS allowed origins",
     )
 
     # Model Paths
-    base_dir: Path = Path(__file__).resolve().parent.parent.parent
+    base_dir: Path = _PROJECT_ROOT
     soil_classifier_model_path: Path | None = Field(
         default=None,
         description="Path to soil type classifier model (model.h5)",
@@ -45,6 +48,14 @@ class Settings(BaseSettings):
         default=None,
         description="Path to fertility predictor model (.joblib)",
     )
+
+    @field_validator("soil_classifier_model_path", "fertility_predictor_model_path", mode="before")
+    @classmethod
+    def empty_string_to_none(cls, v: Any) -> Any:
+        """Convert empty strings to None for model paths."""
+        if v == "" or v is None:
+            return None
+        return v
 
     # MLflow Configuration
     mlflow_tracking_uri: str = Field(
@@ -74,17 +85,14 @@ class Settings(BaseSettings):
     )
 
     def model_post_init(self, __context: Any) -> None:
-        """Set default model paths after initialization."""
-        artifacts_dir = self.base_dir / "artifacts"
-
+        """Set default paths and MLflow registry URI if not provided."""
+        # Set default model paths
         if self.soil_classifier_model_path is None:
-            self.soil_classifier_model_path = artifacts_dir / "soil_classifier" / "model.h5"
-
+            self.soil_classifier_model_path = _PROJECT_ROOT / "artifacts" / "soil_classifier" / "best_model.h5"
+        
         if self.fertility_predictor_model_path is None:
-            self.fertility_predictor_model_path = (
-                artifacts_dir / "fertility_predictor" / "random_forest_model.joblib"
-            )
-
+            self.fertility_predictor_model_path = _PROJECT_ROOT / "artifacts" / "fertility_predictor" / "random_forest_model.joblib"
+        
         if self.mlflow_model_registry_uri is None:
             self.mlflow_model_registry_uri = self.mlflow_tracking_uri
 

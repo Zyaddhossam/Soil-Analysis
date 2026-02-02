@@ -1,6 +1,5 @@
 """Pydantic schemas for API request/response validation."""
 
-
 from pydantic import BaseModel, Field
 
 

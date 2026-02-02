@@ -145,21 +145,21 @@ curl -X POST "http://localhost:8000/api/predictions/fertility" \
 ### Fertility Model
 
 ```bash
-python -m training.fertility.train \
-  --data data/dataset1.csv \
-  --output artifacts/fertility_predictor \
-  --n-estimators 100 \
+python -m training.fertility.train `
+  --data data/dataset1.csv `
+  --output artifacts/fertility_predictor `
+  --n-estimators 100 `
   --max-depth 10
 ```
 
 ### Soil Type Model
 
 ```bash
-python -m training.soil_type.train \
-  --data path/to/soil_images \
-  --output artifacts/soil_classifier \
-  --epochs 10 \
-  --batch-size 32 \
+python -m training.soil_type.train `
+  --data path/to/soil_images `
+  --output artifacts/soil_classifier `
+  --epochs 10 `
+  --batch-size 32 `
   --fine-tune
 ```
 
