@@ -1,81 +1,241 @@
 # Soil Analysis 🌱🖼️
 
-This project features two AI models: one for classifying the type of soil, and another for determining whether the soil is suitable for planting.
-
-## Description
-
-This project aims to help farmers and support the agricultural industry through the use of two AI models. The first model classifies the type of soil based on a small image of the sample, while the second evaluates whether the identified soil is suitable for planting by analyzing the proportions of certain components, such as manganese.
-This system can be especially useful for farmers, agronomists, and agricultural researchers looking to make informed, data-driven planting decisions.
+A machine learning system for soil type classification from images and soil fertility prediction from nutrient analysis data.
 
 ## Features
-- Predicts soil type from uploaded images
-- Returns probabilities for each soil class
-- Evaluates whether the identified soil is suitable for planting
-- Suggests the most suitable types of plants for the given soil (future Work)
 
-## Hosting Process
-- We used **Microsoft Azure** to host the AI models used in the project.
-- Launched a **Virtual Machine (VM)** that meets the requirements of our AI model.
-- Installed the necessary dependencies and reserved the VM for one week to run the API, utilizing **ports 8000 and 5000**.
-- Configured the **inbound port rules** in the Azure Portal to allow traffic through the specified ports.
+- **Soil Type Classification**: CNN-based image classification to identify soil types (Alluvial, Black, Clay, Red)
+- **Fertility Prediction**: Random Forest model to predict soil fertility levels (Less Fertile, Fertile, Highly Fertile)
+- **REST API**: FastAPI-based endpoints for model inference
+- **MLflow Integration**: Experiment tracking and model registry
+- **Docker Support**: Containerized deployment
 
-
-### Model Details
-
-#### 1. Soil Classification Model
-- Input: Image of soil
-- Output: Soil type
-- Classes: Clay Soil, Alluvial Soil, Red Soil, Black Soil
-- Description: This model analyzes a small image of the soil and classifies it into one of the predefined soil types. It is useful for quickly identifying soil type without manual testing.
-
-#### 2. Soil Suitability Model
-- Input: Numeric values for soil components (e.g., manganese, nitrogen)
-- Output: Soil suitability For Planting
-- Classes: Very Suitable, Suitable, Not Suitable
-- Description: This model evaluates whether the soil is suitable for planting based on the proportions of key components. It helps determine the best use of the soil based on its nutrient composition.
-
-### Technologies Used
-- **FastAPI** – For building the web application  
-- **Uvicorn** – For serving the FastAPI app  
-- **Scikit-learn** – For implementing machine learning models  
-- **Pandas** – For data manipulation and analysis  
-- **NumPy** – For numerical operations  
-- **Joblib** – For model serialization  
-- **Pydantic** – For data validation and parsing  
-- **Matplotlib** – For visualizing data  
-- **Seaborn** – For statistical data visualization  
-- **TensorFlow** – For building and training the deep learning model  
-- **Microsoft Azure** – For cloud services and deployment  
-
-### Project structure
+## Project Structure
 ```
-Soil-Analysis
-├── Deployment
-│   └── API.py #code for API 
-│   └── Model.h5 #The Soil Type trained model
-│   └── random_forest_model.joblib #Soil Suitability trained Model
-│   └── Requirments.txt #Requirements for the model
-├── Soil-Suitability-Model
-│   └── model.py #the code for the model itself (random_forest_model.joblib)
-│   └── dataset.csv #dataset for the model   
-│   └── Class_names #for class names in the model
-└── Soil-Types 
-    └── Soil.ipynb #code for Model itself (Model.h5)
-    └── Class_names #for class names in the model
-    └── Cloud
-           └── Resource_Group #image for resource group on microsoft azure
-           └── Virtual Machine Inbound #image for VM inbound traffic on microsoft azure
+soil-analysis/
+├── src/                          # Source code
+│   ├── api/                      # FastAPI application
+│   │   ├── main.py              # Application factory
+│   │   ├── dependencies.py      # Dependency injection
+│   │   ├── routes/              # API endpoints
+│   │   │   ├── health.py        # Health check endpoints
+│   │   │   └── predictions.py   # Prediction endpoints
+│   │   └── schemas/             # Pydantic models
+│   │       └── requests.py      # Request/Response schemas
+│   ├── core/                    # Core configuration
+│   │   ├── config.py            # Settings management
+│   │   ├── constants.py         # Class mappings & constants
+│   │   └── logging.py           # Logging configuration
+│   ├── models/                  # Model wrappers
+│   │   ├── soil_classifier.py   # CNN model wrapper
+│   │   └── fertility_predictor.py # RF model wrapper
+│   └── utils/                   # Utilities
+│       ├── preprocessing.py     # Data preprocessing
+│       └── mlflow_utils.py      # MLflow helpers
+├── training/                    # Training scripts
+│   ├── soil_type/
+│   │   └── train.py            # Soil type model training
+│   └── fertility/
+│       └── train.py            # Fertility model training
+├── tests/                       # Test suite
+│   ├── unit/                    # Unit tests
+│   └── integration/             # Integration tests
+├── artifacts/                   # Model artifacts (git-ignored)
+├── data/                        # Data files
+├── pyproject.toml              # Project configuration
+├── Dockerfile                   # Docker image
+├── docker-compose.yml          # Docker Compose config
+└── README.md
 ```
 
-## Quick Start
+## Installation
 
 ### Prerequisites
-- Python 3.8+
-- pip
 
-### Installation
+- Python 3.10+
+- pip or uv package manager
+
+### Setup
+
+1. Clone the repository:
 ```bash
-git clone https://github.com/Zyaddhossam/Soil_Model.git
-cd Soil-Analysis/Deployment/
-pip install -r requirements.txt
+git clone <repository-url>
+cd soil-analysis
 ```
+
+2. Create a virtual environment:
+```bash
+python -m venv venv
+venv\Scripts\activate  # Windows
+# or
+source venv/bin/activate  # Linux/Mac
+```
+
+3. Install dependencies:
+```bash
+pip install -e ".[dev]"
+```
+
+4. Copy environment configuration:
+```bash
+cp .env.example .env
+```
+
+5. Place model files in the `artifacts/` directory:
+   - `artifacts/soil_classifier/model.h5`
+   - `artifacts/fertility_predictor/random_forest_model.joblib`
+
+## Usage
+
+### Running the API
+
+**Development mode:**
+```bash
+uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Production mode:**
+```bash
+uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+**With Docker:**
+```bash
+docker-compose up -d
+```
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | API information |
+| `/health` | GET | Health check |
+| `/ready` | GET | Readiness check |
+| `/api/predictions/soil-type` | POST | Classify soil from image |
+| `/api/predictions/fertility` | POST | Predict fertility from nutrients |
+| `/api/predictions/analyze` | POST | Combined analysis |
+
+### API Documentation
+
+Once running, access the interactive documentation:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+### Example Requests
+
+**Soil Type Classification:**
+```bash
+curl -X POST "http://localhost:8000/api/predictions/soil-type" \
+  -F "file=@soil_image.jpg"
+```
+
+**Fertility Prediction:**
+```bash
+curl -X POST "http://localhost:8000/api/predictions/fertility" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "N": 280, "P": 45, "K": 320, "pH": 6.5,
+    "EC": 0.45, "OC": 0.75, "S": 12, "Zn": 1.2,
+    "Fe": 8.5, "Cu": 1.8, "Mn": 15, "B": 0.5
+  }'
+```
+
+## Training Models
+
+### Fertility Model
+
+```bash
+python -m training.fertility.train \
+  --data data/dataset1.csv \
+  --output artifacts/fertility_predictor \
+  --n-estimators 100 \
+  --max-depth 10
+```
+
+### Soil Type Model
+
+```bash
+python -m training.soil_type.train \
+  --data path/to/soil_images \
+  --output artifacts/soil_classifier \
+  --epochs 10 \
+  --batch-size 32 \
+  --fine-tune
+```
+
+### MLflow Tracking
+
+View experiment tracking:
+```bash
+mlflow ui --host 0.0.0.0 --port 5000
+```
+
+Access at: http://localhost:5000
+
+## Testing
+
+Run all tests:
+```bash
+pytest
+```
+
+Run with coverage:
+```bash
+pytest --cov=src --cov-report=html
+```
+
+Run specific test files:
+```bash
+pytest tests/unit/test_preprocessing.py
+pytest tests/integration/test_api.py
+```
+
+## Configuration
+
+Configuration is managed through environment variables or `.env` file:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DEBUG` | Enable debug mode | `false` |
+| `ENVIRONMENT` | Environment name | `development` |
+| `API_PREFIX` | API route prefix | `/api` |
+| `MLFLOW_TRACKING_URI` | MLflow tracking URI | `sqlite:///mlflow.db` |
+| `SOIL_CLASSIFIER_MODEL_PATH` | Path to soil classifier | `artifacts/soil_classifier/model.h5` |
+| `FERTILITY_PREDICTOR_MODEL_PATH` | Path to fertility model | `artifacts/fertility_predictor/random_forest_model.joblib` |
+
+## Class Definitions
+
+### Soil Types
+| Class | ID | Description |
+|-------|-----|-------------|
+| Alluvial Soil | 0 | Formed by river deposits |
+| Black Soil | 1 | Rich in clay, retains moisture |
+| Clay Soil | 2 | Fine particles, holds nutrients |
+| Red Soil | 3 | Rich in iron oxides |
+
+### Fertility Levels
+| Class | ID | Description |
+|-------|-----|-------------|
+| Less Fertile | 0 | Requires significant improvement |
+| Fertile | 1 | Good fertility, maintain with regular care |
+| Highly Fertile | 2 | Excellent, well-suited for most crops |
+
+## Development
+
+### Code Quality
+
+```bash
+# Format code
+black src/ tests/
+isort src/ tests/
+
+# Lint
+ruff check src/ tests/
+
+# Type check
+mypy src/
+```
+
+## License
+
+MIT License - see LICENSE file for details.

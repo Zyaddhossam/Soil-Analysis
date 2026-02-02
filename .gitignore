@@ -1,0 +1,91 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.conda/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Testing
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+coverage_html/
+
+# MLflow
+mlruns/
+mlflow.db
+
+# TensorFlow/Keras
+*.h5
+*.keras
+*.pb
+saved_model/
+logs/
+tensorboard_logs/
+
+# Model artifacts (tracked separately)
+artifacts/*.joblib
+artifacts/*.h5
+artifacts/**/*.joblib
+artifacts/**/*.h5
+
+# Data files (too large for git)
+*.csv
+!data/sample/*.csv
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+tmp/
+temp/
+*.tmp
+*.temp
