@@ -48,39 +48,61 @@ python -m uvicorn src.api.main:app --reload --port 8000
 ```
 soil-analysis/
 ├── src/                          # Source code
+│   ├── __init__.py
 │   ├── api/                      # FastAPI application
+│   │   ├── __init__.py
 │   │   ├── main.py              # Application factory
 │   │   ├── dependencies.py      # Dependency injection
 │   │   ├── routes/              # API endpoints
+│   │   │   ├── __init__.py
 │   │   │   ├── health.py        # Health check endpoints
 │   │   │   └── predictions.py   # Prediction endpoints
 │   │   └── schemas/             # Pydantic models
+│   │       ├── __init__.py
 │   │       └── requests.py      # Request/Response schemas
 │   ├── core/                    # Core configuration
+│   │   ├── __init__.py
 │   │   ├── config.py            # Settings management
 │   │   ├── constants.py         # Class mappings & constants
 │   │   └── logging.py           # Logging configuration
 │   ├── models/                  # Model wrappers
+│   │   ├── __init__.py
 │   │   ├── soil_classifier.py   # CNN model wrapper
 │   │   └── fertility_predictor.py # RF model wrapper
 │   └── utils/                   # Utilities
+│       ├── __init__.py
 │       ├── preprocessing.py     # Data preprocessing
 │       └── mlflow_utils.py      # MLflow helpers
 ├── training/                    # Training scripts
+│   ├── __init__.py
 │   ├── soil_type/
+│   │   ├── __init__.py
 │   │   └── train.py            # Soil type model training
 │   └── fertility/
+│       ├── __init__.py
 │       └── train.py            # Fertility model training
 ├── tests/                       # Test suite
-│   ├── unit/                    # Unit tests
-│   └── integration/             # Integration tests
+│   ├── __init__.py
+│   ├── conftest.py             # Pytest configuration
+│   ├── unit/                   # Unit tests
+│   │   ├── __init__.py
+│   │   ├── test_models.py
+│   │   └── test_preprocessing.py
+│   └── integration/            # Integration tests
+│       ├── __init__.py
+│       └── test_api.py
 ├── data/                        # Training data
+│   └── class_mappings/         # Class label mappings
+│       ├── __init__.py
+│       ├── fertility_levels.json
+│       └── soil_types.json
 ├── mlruns/                      # MLflow runs (auto-generated)
 ├── mlflow.db                    # MLflow tracking database
+├── .env.example                 # Environment variables template
 ├── pyproject.toml              # Project configuration
 ├── Dockerfile                   # Docker image definition
 ├── docker-compose.yml          # Docker Compose config
-└── README.md
+└── README.md                    # This file
 ```
 
 ## Architecture
