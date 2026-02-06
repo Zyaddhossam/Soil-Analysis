@@ -22,17 +22,18 @@ def get_soil_classifier() -> SoilClassifier:
     if _soil_classifier is None:
         logger.info("Initializing SoilClassifier...")
         _soil_classifier = SoilClassifier(
-            use_mlflow=False,  # Set to True to use MLflow registry
+            use_mlflow=True,  # Load from MLflow registry
         )
 
     # Ensure model is loaded
     if not _soil_classifier.is_loaded:
         try:
             _soil_classifier.load()
+        except FileNotFoundError as e:
+            logger.warning(f"Model file not found: {e}")
+            logger.warning("Soil classifier will not be available until model is trained")
         except Exception as e:
             logger.error(f"Failed to load soil classifier: {e}")
-            # Return unloaded instance - will fail on predict
-            pass
 
     return _soil_classifier
 
@@ -48,17 +49,18 @@ def get_fertility_predictor() -> FertilityPredictor:
     if _fertility_predictor is None:
         logger.info("Initializing FertilityPredictor...")
         _fertility_predictor = FertilityPredictor(
-            use_mlflow=False,  # Set to True to use MLflow registry
+            use_mlflow=True,  # Load from MLflow registry
         )
 
     # Ensure model is loaded
     if not _fertility_predictor.is_loaded:
         try:
             _fertility_predictor.load()
+        except FileNotFoundError as e:
+            logger.warning(f"Model file not found: {e}")
+            logger.warning("Fertility predictor will not be available until model is trained")
         except Exception as e:
             logger.error(f"Failed to load fertility predictor: {e}")
-            # Return unloaded instance - will fail on predict
-            pass
 
     return _fertility_predictor
 

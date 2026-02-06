@@ -32,13 +32,17 @@ RUN pip install --no-cache-dir /wheels/* \
 
 # Copy application code
 COPY src/ ./src/
-COPY artifacts/ ./artifacts/
+
+# Copy MLflow tracking database and runs
+COPY mlflow.db ./mlflow.db
+COPY mlruns/ ./mlruns/
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     ENVIRONMENT=production \
-    DEBUG=false
+    DEBUG=false \
+    MLFLOW_TRACKING_URI=sqlite:///mlflow.db
 
 # Switch to non-root user
 USER appuser

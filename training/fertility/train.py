@@ -368,7 +368,7 @@ class FertilityTrainer:
             )
 
             # Save local copy
-            self.save_model()
+            # self.save_model()  # COMMENTED OUT FOR TESTING
 
             run_id = run.info.run_id
         
