@@ -99,6 +99,10 @@ class SoilTypeResponse(BaseModel):
         default=None,
         description="Probabilities for all classes",
     )
+    backbone: str | None = Field(
+        default=None,
+        description="CNN backbone used for classification",
+    )
 
 
 class FertilityResponse(BaseModel):
@@ -115,6 +119,10 @@ class FertilityResponse(BaseModel):
     warnings: list[str] | None = Field(
         default=None,
         description="Data validation warnings",
+    )
+    needs_lab_test: bool = Field(
+        default=False,
+        description="Whether lab testing is recommended for more accurate results",
     )
 
 

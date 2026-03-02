@@ -1,15 +1,17 @@
 """Soil type classifier model wrapper.
 
-This module provides a clean interface for the Xception-based CNN
-that classifies soil images into 4 types.
+Supports multiple CNN backbones (EfficientNet-B0, MobileNetV2, Xception)
+with per-backbone image sizing and model metadata.
 """
 
+import json
 from pathlib import Path
 
 import numpy as np
 
 from src.core.config import settings
 from src.core.constants import (
+    BACKBONE_IMAGE_SIZES,
     NUM_SOIL_TYPES,
     SOIL_TYPE_CHARACTERISTICS,
     SOIL_TYPE_LABELS,
@@ -23,8 +25,8 @@ logger = get_logger(__name__)
 class SoilClassifier:
     """Wrapper for the soil type classification model.
 
-    This classifier uses a pre-trained Xception CNN to classify
-    soil images into one of four types: Alluvial, Black, Clay, or Red.
+    Automatically resolves the correct input size from model metadata
+    or the configured backbone.
     """
 
     def __init__(
@@ -43,6 +45,9 @@ class SoilClassifier:
             mlflow_model_version: Version of model to load.
         """
         self._model = None
+        self._backbone: str = settings.soil_classifier_backbone
+        self._image_size: tuple[int, int] = settings.image_size
+
         if model_path is not None:
             self._model_path: Path = (
                 Path(model_path) if not isinstance(model_path, Path) else model_path
@@ -52,11 +57,27 @@ class SoilClassifier:
             if path_from_settings is None:
                 raise RuntimeError("Soil classifier model path not configured in settings")
             self._model_path = path_from_settings
-        
-        logger.debug(f"Initialized SoilClassifier with model_path: {self._model_path}")
-        logger.debug(f"Model path type: {type(self._model_path)}")
-        logger.debug(f"Model path absolute: {self._model_path.absolute()}")
-        
+
+        # Try to load metadata for image size
+        meta_path = self._model_path.parent / "model_metadata.json"
+        if meta_path.exists():
+            try:
+                with open(meta_path) as f:
+                    meta = json.load(f)
+                self._backbone = meta.get("backbone", self._backbone)
+                size = meta.get("image_size")
+                if size and len(size) == 2:
+                    self._image_size = tuple(size)  # type: ignore[assignment]
+                logger.debug(f"Loaded model metadata: backbone={self._backbone}")
+            except Exception:
+                pass
+
+        # Fallback: resolve from backbone config
+        if self._backbone in BACKBONE_IMAGE_SIZES:
+            self._image_size = BACKBONE_IMAGE_SIZES[self._backbone]
+
+        logger.debug(f"SoilClassifier image_size={self._image_size}, backbone={self._backbone}")
+
         self._use_mlflow = use_mlflow
         self._mlflow_model_name = mlflow_model_name or "soil-classifier"
         self._mlflow_model_version = mlflow_model_version
@@ -135,7 +156,7 @@ class SoilClassifier:
         # Preprocess image
         processed_image = preprocess_image(
             image,
-            target_size=settings.image_size,
+            target_size=self._image_size,
             normalize=True,
         )
 
@@ -183,7 +204,7 @@ class SoilClassifier:
 
         # Preprocess all images
         processed_images = np.vstack(
-            [preprocess_image(img, target_size=settings.image_size) for img in images]
+            [preprocess_image(img, target_size=self._image_size) for img in images]
         )
 
         if self._model is None:
@@ -221,3 +242,13 @@ class SoilClassifier:
     def class_names(self) -> list[str]:
         """Get list of class names."""
         return list(SOIL_TYPE_LABELS.values())
+
+    @property
+    def backbone(self) -> str:
+        """Get the backbone architecture name."""
+        return self._backbone
+
+    @property
+    def image_size(self) -> tuple[int, int]:
+        """Get the expected input image size."""
+        return self._image_size

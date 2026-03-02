@@ -21,6 +21,38 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/predictions", tags=["Predictions"])
 
 
+@router.get(
+    "/model-info",
+    status_code=status.HTTP_200_OK,
+    summary="Model Information",
+    description="Get information about the loaded models.",
+)
+async def model_info(
+    classifier: SoilClassifier = Depends(get_soil_classifier),
+    predictor: FertilityPredictor = Depends(get_fertility_predictor),
+) -> dict:
+    """Return loaded model metadata.
+
+    Returns:
+        Dictionary with model information.
+    """
+    return {
+        "soil_classifier": {
+            "backbone": classifier.backbone,
+            "image_size": list(classifier.image_size),
+            "num_classes": classifier.num_classes,
+            "class_names": classifier.class_names,
+            "loaded": classifier.is_loaded,
+        },
+        "fertility_predictor": {
+            "num_classes": predictor.num_classes,
+            "class_names": predictor.class_names,
+            "feature_names": predictor.feature_names,
+            "loaded": predictor.is_loaded,
+        },
+    }
+
+
 @router.post(
     "/soil-type",
     response_model=SoilTypeResponse,
@@ -73,6 +105,8 @@ async def predict_soil_type(
             image_data,
             return_probabilities=include_probabilities,
         )
+
+        result["backbone"] = classifier.backbone
 
         return SoilTypeResponse(**result)
 
@@ -213,6 +247,7 @@ async def analyze_soil(
             image_data,
             return_probabilities=include_probabilities,
         )
+        soil_type_result["backbone"] = classifier.backbone
 
         fertility_result = predictor.predict(
             features.to_dict(),

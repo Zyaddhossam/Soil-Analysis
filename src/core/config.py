@@ -48,6 +48,20 @@ class Settings(BaseSettings):
         default=None,
         description="Path to fertility predictor model (.joblib)",
     )
+    fertility_scaler_path: Path | None = Field(
+        default=None,
+        description="Path to feature scaler (.joblib), if used during training",
+    )
+
+    # Backbone configuration
+    soil_classifier_backbone: str = Field(
+        default="efficientnet_b0",
+        description="CNN backbone used for soil classification",
+    )
+    use_feature_engineering: bool = Field(
+        default=True,
+        description="Whether the fertility model uses engineered features",
+    )
 
     @field_validator("soil_classifier_model_path", "fertility_predictor_model_path", mode="before")
     @classmethod
@@ -71,8 +85,8 @@ class Settings(BaseSettings):
         description="MLflow model registry URI (defaults to tracking URI)",
     )
 
-    # Image Processing
-    image_size: tuple[int, int] = (299, 299)
+    # Image Processing – resolved dynamically from backbone
+    image_size: tuple[int, int] = (224, 224)
     image_channels: int = 3
 
     # Inference
@@ -89,10 +103,20 @@ class Settings(BaseSettings):
         # Set default model paths
         if self.soil_classifier_model_path is None:
             self.soil_classifier_model_path = _PROJECT_ROOT / "artifacts" / "soil_classifier" / "best_model.h5"
-        
+
         if self.fertility_predictor_model_path is None:
             self.fertility_predictor_model_path = _PROJECT_ROOT / "artifacts" / "fertility_predictor" / "random_forest_model.joblib"
-        
+
+        if self.fertility_scaler_path is None:
+            candidate = _PROJECT_ROOT / "artifacts" / "fertility_predictor" / "scaler.joblib"
+            if candidate.exists():
+                self.fertility_scaler_path = candidate
+
+        # Resolve image_size from backbone
+        from src.core.constants import BACKBONE_IMAGE_SIZES
+        if self.soil_classifier_backbone in BACKBONE_IMAGE_SIZES:
+            self.image_size = BACKBONE_IMAGE_SIZES[self.soil_classifier_backbone]
+
         if self.mlflow_model_registry_uri is None:
             self.mlflow_model_registry_uri = self.mlflow_tracking_uri
 

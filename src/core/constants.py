@@ -111,8 +111,24 @@ FERTILITY_FEATURE_NAMES: Final[list[str]] = [
 NUM_FERTILITY_FEATURES: Final[int] = len(FERTILITY_FEATURE_NAMES)
 
 # Image preprocessing constants
-DEFAULT_IMAGE_SIZE: Final[tuple[int, int]] = (299, 299)
+DEFAULT_IMAGE_SIZE: Final[tuple[int, int]] = (224, 224)
 IMAGE_CHANNELS: Final[int] = 3
+
+# Per-backbone image sizes
+BACKBONE_IMAGE_SIZES: Final[dict[str, tuple[int, int]]] = {
+    "efficientnet_b0": (224, 224),
+    "mobilenet_v2": (224, 224),
+    "xception": (299, 299),
+}
+
+# Engineered feature names (added during training v2)
+ENGINEERED_FEATURE_NAMES: Final[list[str]] = [
+    "N_P_ratio",
+    "N_K_ratio",
+    "NPK_total",
+    "micro_total",
+    "OC_pH_interaction",
+]
 
 # Recommendations based on fertility level
 FERTILITY_RECOMMENDATIONS: Final[dict[int, str]] = {

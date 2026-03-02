@@ -5,7 +5,11 @@ import io
 import numpy as np
 from PIL import Image
 
-from src.core.constants import DEFAULT_IMAGE_SIZE, FERTILITY_FEATURE_NAMES
+from src.core.constants import (
+    DEFAULT_IMAGE_SIZE,
+    ENGINEERED_FEATURE_NAMES,
+    FERTILITY_FEATURE_NAMES,
+)
 from src.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -64,15 +68,44 @@ def preprocess_image(
     return img_array
 
 
+def engineer_features(features: dict[str, float]) -> dict[str, float]:
+    """Compute engineered features from raw nutrient values.
+
+    Must mirror the feature engineering done during training:
+    N_P_ratio, N_K_ratio, NPK_total, micro_total, OC_pH_interaction.
+
+    Args:
+        features: Raw nutrient feature dictionary.
+
+    Returns:
+        Dictionary with original + engineered features.
+    """
+    eps = 1e-10
+    engineered = dict(features)
+    engineered["N_P_ratio"] = features["N"] / (features["P"] + eps)
+    engineered["N_K_ratio"] = features["N"] / (features["K"] + eps)
+    engineered["NPK_total"] = features["N"] + features["P"] + features["K"]
+    engineered["micro_total"] = (
+        features["Zn"] + features["Fe"] + features["Cu"]
+        + features["Mn"] + features["B"]
+    )
+    engineered["OC_pH_interaction"] = features["OC"] * features["pH"]
+    return engineered
+
+
 def preprocess_fertility_features(
     features: dict[str, float],
     apply_log_transform: bool = True,
+    use_feature_engineering: bool = False,
+    scaler: object | None = None,
 ) -> np.ndarray:
     """Preprocess soil nutrient features for fertility prediction.
 
     Args:
         features: Dictionary of feature name to value.
         apply_log_transform: Whether to apply log10 transformation.
+        use_feature_engineering: Whether to add engineered features.
+        scaler: Optional fitted StandardScaler to apply.
 
     Returns:
         Feature array with shape (1, num_features).
@@ -85,15 +118,25 @@ def preprocess_fertility_features(
     if missing_features:
         raise ValueError(f"Missing required features: {missing_features}")
 
+    # Optionally add engineered features
+    if use_feature_engineering:
+        features = engineer_features(features)
+        all_feature_names = FERTILITY_FEATURE_NAMES + ENGINEERED_FEATURE_NAMES
+    else:
+        all_feature_names = FERTILITY_FEATURE_NAMES
+
     # Extract features in correct order
-    feature_values = [features[name] for name in FERTILITY_FEATURE_NAMES]
+    feature_values = [features[name] for name in all_feature_names]
     feature_array = np.array(feature_values, dtype=np.float64).reshape(1, -1)
 
     # Apply log transformation (matching training preprocessing)
     if apply_log_transform:
-        # Add small epsilon to avoid log(0)
         epsilon = 1e-10
-        feature_array = np.log10(feature_array + epsilon)
+        feature_array = np.log10(np.abs(feature_array) + epsilon)
+
+    # Apply scaler if provided
+    if scaler is not None and hasattr(scaler, "transform"):
+        feature_array = scaler.transform(feature_array)
 
     logger.debug(f"Preprocessed features shape: {feature_array.shape}")
     return feature_array

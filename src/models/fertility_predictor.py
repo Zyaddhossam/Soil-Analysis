@@ -1,7 +1,7 @@
 """Soil fertility predictor model wrapper.
 
-This module provides a clean interface for the Random Forest classifier
-that predicts soil fertility based on nutrient content.
+Supports multiple sklearn classifiers (RandomForest, GradientBoosting,
+SVM, etc.) with optional feature engineering and feature scaling.
 """
 
 from pathlib import Path
@@ -25,13 +25,15 @@ logger = get_logger(__name__)
 class FertilityPredictor:
     """Wrapper for the soil fertility prediction model.
 
-    This predictor uses a Random Forest classifier to predict soil
-    fertility level based on nutrient content analysis.
+    Supports multiple sklearn classifiers and optionally applies
+    feature engineering and scaler transforms at inference time.
     """
 
     def __init__(
         self,
         model_path: str | Path | None = None,
+        scaler_path: str | Path | None = None,
+        use_feature_engineering: bool | None = None,
         use_mlflow: bool = False,
         mlflow_model_name: str | None = None,
         mlflow_model_version: str | None = None,
@@ -40,11 +42,16 @@ class FertilityPredictor:
 
         Args:
             model_path: Path to the saved model (.joblib).
+            scaler_path: Path to saved StandardScaler (.joblib), or None.
+            use_feature_engineering: Whether to add engineered features.
+                Defaults to settings.use_feature_engineering.
             use_mlflow: Whether to load model from MLflow registry.
             mlflow_model_name: Name of model in MLflow registry.
             mlflow_model_version: Version of model to load.
         """
         self._model = None
+        self._scaler = None
+
         if model_path is not None:
             self._model_path: Path = (
                 Path(model_path) if not isinstance(model_path, Path) else model_path
@@ -54,11 +61,24 @@ class FertilityPredictor:
             if path_from_settings is None:
                 raise RuntimeError("Fertility predictor model path not configured in settings")
             self._model_path = path_from_settings
-        
+
+        # Scaler path
+        if scaler_path is not None:
+            self._scaler_path: Path | None = Path(scaler_path)
+        else:
+            self._scaler_path = settings.fertility_scaler_path
+
+        self._use_feature_engineering = (
+            use_feature_engineering
+            if use_feature_engineering is not None
+            else settings.use_feature_engineering
+        )
+
         logger.debug(f"Initialized FertilityPredictor with model_path: {self._model_path}")
-        logger.debug(f"Model path type: {type(self._model_path)}")
-        logger.debug(f"Model path absolute: {self._model_path.absolute()}")
-        
+        logger.debug(f"Feature engineering: {self._use_feature_engineering}")
+        if self._scaler_path:
+            logger.debug(f"Scaler path: {self._scaler_path}")
+
         self._use_mlflow = use_mlflow
         self._mlflow_model_name = mlflow_model_name or "fertility-predictor"
         self._mlflow_model_version = mlflow_model_version
@@ -89,7 +109,7 @@ class FertilityPredictor:
             raise RuntimeError(f"Model loading failed: {e}") from e
 
     def _load_from_file(self) -> None:
-        """Load model from local file."""
+        """Load model (and optional scaler) from local files."""
         import joblib
 
         if not self._model_path.exists():
@@ -97,6 +117,11 @@ class FertilityPredictor:
 
         logger.info(f"Loading model from: {self._model_path}")
         self._model = joblib.load(self._model_path)
+
+        # Load scaler if available
+        if self._scaler_path and self._scaler_path.exists():
+            logger.info(f"Loading scaler from: {self._scaler_path}")
+            self._scaler = joblib.load(self._scaler_path)
 
     def _load_from_mlflow(self) -> None:
         """Load model from MLflow registry."""
@@ -147,6 +172,8 @@ class FertilityPredictor:
         processed_features = preprocess_fertility_features(
             features,
             apply_log_transform=True,
+            use_feature_engineering=self._use_feature_engineering,
+            scaler=self._scaler,
         )
 
         if self._model is None:
